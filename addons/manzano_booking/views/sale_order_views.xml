@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_order_form_manzano_booking" model="ir.ui.view">
+    <field name="name">sale.order.form.manzano.booking</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//sheet//group" position="inside">
+        <group string="Manzano Booking">
+          <field name="mz_is_booking"/>
+          <field name="mz_policy_accepted"/>
+          <field name="mz_booking_id" readonly="1"/>
+          <field name="mz_booking_state" readonly="1"/>
+          <button name="action_mz_create_soft_hold" type="object" string="Create Soft Hold" class="btn-secondary" invisible="not mz_is_booking"/>
+        </group>
+      </xpath>
+    </field>
+  </record>
+</odoo>

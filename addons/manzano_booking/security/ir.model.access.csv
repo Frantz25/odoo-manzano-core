@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_manzano_booking_user,access.manzano.booking.user,model_manzano_booking,base.group_user,1,1,1,0
