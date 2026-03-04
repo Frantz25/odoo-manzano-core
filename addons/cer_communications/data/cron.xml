@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="1">
+
+    <record id="ir_cron_cer_validity_reminder" model="ir.cron">
+      <field name="name">CER: Recordatorio vigencia cotizaciones</field>
+      <field name="model_id" ref="cer_communications.model_cer_communication_service"/>
+      <field name="state">code</field>
+      <field name="code">model.cron_send_validity_reminders()</field>
+      <field name="interval_number">1</field>
+      <field name="interval_type">days</field>
+      <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_cer_precheckin_reminder" model="ir.cron">
+      <field name="name">CER: Recordatorio pre check-in</field>
+      <field name="model_id" ref="cer_communications.model_cer_communication_service"/>
+      <field name="state">code</field>
+      <field name="code">model.cron_send_precheckin_reminders()</field>
+      <field name="interval_number">1</field>
+      <field name="interval_type">days</field>
+      <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_cer_postevent_followup" model="ir.cron">
+      <field name="name">CER: Seguimiento post-evento</field>
+      <field name="model_id" ref="cer_communications.model_cer_communication_service"/>
+      <field name="state">code</field>
+      <field name="code">model.cron_send_postevent_followup()</field>
+      <field name="interval_number">1</field>
+      <field name="interval_type">days</field>
+      <field name="active">True</field>
+    </record>
+
+  </data>
+</odoo>
