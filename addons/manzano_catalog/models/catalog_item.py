@@ -23,6 +23,14 @@ class ManzanoCatalogItem(models.Model):
     currency = fields.Char(default="CLP")
     active = fields.Boolean(default=True)
 
+    # Campos adicionales útiles para catálogo real
+    source_default_code = fields.Char(index=True)
+    source_type = fields.Char()
+    source_tax = fields.Char()
+    source_uom = fields.Char()
+    source_charge_mode = fields.Char(index=True)
+    source_min_people = fields.Integer(default=0)
+
     source_hash = fields.Char(index=True)
     source_name = fields.Char(default="csv")
     last_sync_at = fields.Datetime()
@@ -42,6 +50,11 @@ class ManzanoCatalogItem(models.Model):
             "price_base": vals.get("price_base"),
             "currency": vals.get("currency"),
             "active": vals.get("active", True),
+            "source_type": vals.get("source_type"),
+            "source_tax": vals.get("source_tax"),
+            "source_uom": vals.get("source_uom"),
+            "source_charge_mode": vals.get("source_charge_mode"),
+            "source_min_people": vals.get("source_min_people"),
         }
         raw = json.dumps(payload, sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
