@@ -1,4 +1,6 @@
-from odoo import fields, models, _
+from urllib.parse import quote
+
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 
@@ -12,6 +14,19 @@ class SaleOrder(models.Model):
     mz_hold_expires_at = fields.Datetime(related="mz_booking_id.hold_expires_at", string="Hold Expires", readonly=True)
     mz_qr_state = fields.Selection(related="mz_booking_id.qr_state", string="QR State", readonly=True)
     mz_qr_url = fields.Char(related="mz_booking_id.qr_url", string="QR URL", readonly=True)
+    mz_qr_html = fields.Html(string="QR Code", compute="_compute_mz_qr_html", sanitize=False)
+
+    @api.depends("mz_qr_url", "mz_qr_state")
+    def _compute_mz_qr_html(self):
+        for order in self:
+            if order.mz_qr_url and order.mz_qr_state in ("provisional", "definitive"):
+                encoded = quote(order.mz_qr_url, safe="")
+                order.mz_qr_html = (
+                    f"<img src='/report/barcode/QR/{encoded}?width=180&height=180' "
+                    "style='max-width:180px;max-height:180px;'/>"
+                )
+            else:
+                order.mz_qr_html = False
 
     def _mz_validate_for_final_confirmation(self):
         for order in self.filtered("mz_is_booking"):
