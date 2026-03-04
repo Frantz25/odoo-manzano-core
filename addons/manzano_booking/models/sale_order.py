@@ -1,4 +1,4 @@
-from odoo import api, fields, models, _
+from odoo import fields, models, _
 from odoo.exceptions import UserError
 
 
@@ -9,6 +9,7 @@ class SaleOrder(models.Model):
     mz_policy_accepted = fields.Boolean(string="Policy Accepted", default=False, copy=False)
     mz_booking_id = fields.Many2one("manzano.booking", string="Booking", copy=False, readonly=True)
     mz_booking_state = fields.Selection(related="mz_booking_id.state", string="Booking State", readonly=True)
+    mz_hold_expires_at = fields.Datetime(related="mz_booking_id.hold_expires_at", string="Hold Expires", readonly=True)
 
     def _mz_validate_for_final_confirmation(self):
         for order in self.filtered("mz_is_booking"):
@@ -16,6 +17,10 @@ class SaleOrder(models.Model):
                 raise UserError(_("Booking requires a customer before confirmation."))
             if not order.mz_policy_accepted:
                 raise UserError(_("Policy acceptance is required before final confirmation."))
+            if not order.mz_booking_id:
+                raise UserError(_("Booking record is required before final confirmation."))
+            if order.mz_booking_id.state not in ("reserved", "draft"):
+                raise UserError(_("Booking must be in draft/reserved before final confirmation."))
             # NOTE (E2.2): availability and deposit validators are added in next commits.
 
     def _mz_get_or_create_booking(self):
@@ -24,7 +29,7 @@ class SaleOrder(models.Model):
             return self.mz_booking_id
         booking = self.env["manzano.booking"].create({
             "sale_order_id": self.id,
-            "state": "reserved",
+            "state": "draft",
         })
         self.mz_booking_id = booking.id
         return booking
@@ -41,7 +46,7 @@ class SaleOrder(models.Model):
         # 3) operational confirmation must be consistent with sale state
         for order in booking_orders:
             booking = order._mz_get_or_create_booking()
-            booking.state = "confirmed"
+            booking.set_confirmed()
 
         return res
 
@@ -52,6 +57,9 @@ class SaleOrder(models.Model):
         for order in self:
             if not order.mz_is_booking:
                 raise UserError(_("Order is not marked as Manzano booking."))
+            if not order.partner_id:
+                raise UserError(_("Customer is required before creating soft-hold."))
             booking = order._mz_get_or_create_booking()
-            booking.state = "reserved"
+            booking.set_soft_hold()
+            order.message_post(body=_("Soft-hold creado con expiración en %s") % (booking.hold_expires_at or "-"))
         return True
