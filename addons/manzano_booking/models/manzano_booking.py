@@ -26,6 +26,7 @@ class ManzanoBooking(models.Model):
 
     hold_expires_at = fields.Datetime(string="Hold Expires At", tracking=True)
     qr_token = fields.Char(string="QR Token", copy=False, index=True)
+    portal_token = fields.Char(string="Portal Token", copy=False, index=True)
     qr_state = fields.Selection(
         [
             ("none", "No QR"),
@@ -38,6 +39,7 @@ class ManzanoBooking(models.Model):
         tracking=True,
     )
     qr_url = fields.Char(string="QR URL", compute="_compute_qr_url", store=False)
+    portal_url = fields.Char(string="Portal URL", compute="_compute_portal_url", store=False)
 
     @api.depends("qr_token", "qr_state")
     def _compute_qr_url(self):
@@ -47,6 +49,12 @@ class ManzanoBooking(models.Model):
                 rec.qr_url = False
                 continue
             rec.qr_url = f"{base_url}/manzano/checkin/{rec.qr_token}?mode={rec.qr_state}"
+
+    @api.depends("portal_token")
+    def _compute_portal_url(self):
+        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url") or ""
+        for rec in self:
+            rec.portal_url = f"{base_url}/manzano/booking/{rec.portal_token}" if (base_url and rec.portal_token) else False
 
     @api.model
     def _mz_default_hold_hours(self):
@@ -79,6 +87,7 @@ class ManzanoBooking(models.Model):
                 "state": "reserved",
                 "hold_expires_at": fields.Datetime.now() + timedelta(hours=hours),
                 "qr_token": booking.qr_token or secrets.token_urlsafe(12),
+                "portal_token": booking.portal_token or secrets.token_urlsafe(24),
                 "qr_state": "provisional",
             })
 
@@ -88,6 +97,7 @@ class ManzanoBooking(models.Model):
                 "state": "confirmed",
                 "hold_expires_at": False,
                 "qr_token": booking.qr_token or secrets.token_urlsafe(12),
+                "portal_token": booking.portal_token or secrets.token_urlsafe(24),
                 "qr_state": "definitive",
             })
 

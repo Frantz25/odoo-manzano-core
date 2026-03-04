@@ -4,11 +4,12 @@
     "summary": "Atomic booking confirmation flow for Odoo Manzano",
     "author": "Manzano",
     "license": "LGPL-3",
-    "depends": ["sale", "mail"],
+    "depends": ["sale", "mail", "portal", "website"],
     "data": [
         "security/manzano_booking_security.xml",
         "security/ir.model.access.csv",
         "views/sale_order_views.xml",
+        "views/portal_templates.xml",
         "data/cron.xml",
     ],
     "installable": True,

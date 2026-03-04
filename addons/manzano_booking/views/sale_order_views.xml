@@ -13,6 +13,7 @@
           <field name="mz_booking_state" readonly="1"/>
           <field name="mz_hold_expires_at" readonly="1"/>
           <field name="mz_qr_state" readonly="1"/>
+          <field name="mz_portal_url" readonly="1" widget="url"/>
           <field name="mz_qr_html" readonly="1" widget="html"/>
           <button name="action_mz_create_soft_hold" type="object" string="Create Soft Hold" class="btn-secondary" invisible="not mz_is_booking"/>
         </group>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <template id="portal_booking_page" name="Manzano Booking Portal Page">
+    <t t-call="web.html_container">
+      <div class="container my-4" style="max-width: 820px;">
+        <h3>Reserva Manzano</h3>
+        <p><strong>Código:</strong> <span t-esc="booking.id"/></p>
+        <p><strong>Estado:</strong> <span t-esc="booking.state"/></p>
+        <p><strong>Entrada:</strong> <span t-esc="order.commitment_date or '-'"/></p>
+        <p><strong>Salida:</strong> <span t-esc="order.validity_date or '-'"/></p>
+
+        <div t-if="order.mz_qr_html" t-raw="order.mz_qr_html"/>
+
+        <div class="alert alert-info mt-3" t-if="not order.mz_policy_accepted">
+          Debes aceptar políticas para continuar el flujo de reserva.
+        </div>
+
+        <form t-if="not order.mz_policy_accepted" t-att-action="'/manzano/booking/%s/accept_policy' % booking.portal_token" method="post">
+          <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+          <button class="btn btn-primary" type="submit">Aceptar políticas</button>
+        </form>
+
+        <div class="alert alert-success mt-3" t-if="order.mz_policy_accepted">
+          Políticas aceptadas.
+        </div>
+      </div>
+    </t>
+  </template>
+</odoo>

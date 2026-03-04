@@ -40,6 +40,7 @@ class SaleOrder(models.Model):
     mz_hold_expires_at = fields.Datetime(related="mz_booking_id.hold_expires_at", string="Hold Expires", readonly=True)
     mz_qr_state = fields.Selection(related="mz_booking_id.qr_state", string="QR State", readonly=True)
     mz_qr_url = fields.Char(related="mz_booking_id.qr_url", string="QR URL", readonly=True)
+    mz_portal_url = fields.Char(related="mz_booking_id.portal_url", string="Portal URL", readonly=True)
     mz_qr_html = fields.Html(string="QR Code", compute="_compute_mz_qr_html", sanitize=False)
 
     @api.depends("mz_qr_url", "mz_qr_state")
