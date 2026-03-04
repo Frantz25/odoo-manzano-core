@@ -6,6 +6,7 @@
     "license": "LGPL-3",
     "depends": ["sale", "mail"],
     "data": [
+        "security/manzano_booking_security.xml",
         "security/ir.model.access.csv",
         "views/sale_order_views.xml",
         "data/cron.xml",

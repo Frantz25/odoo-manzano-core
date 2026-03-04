@@ -1,13 +1,39 @@
 from urllib.parse import quote
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    def _mz_is_manager(self):
+        return self.env.user.has_group("manzano_booking.group_manzano_booking_manager")
+
+    def _mz_is_operations(self):
+        return self.env.user.has_group("manzano_booking.group_manzano_booking_operations")
+
+    def _mz_is_commercial(self):
+        return self.env.user.has_group("manzano_booking.group_manzano_booking_commercial")
+
+    def _mz_assert_can_create_hold(self):
+        if not (self._mz_is_manager() or self._mz_is_operations()):
+            raise AccessError(_("Solo Operaciones o Manager puede crear soft-hold."))
+
+    def _mz_assert_can_final_confirm(self):
+        if not (self._mz_is_manager() or self._mz_is_operations()):
+            raise AccessError(_("Solo Operaciones o Manager puede confirmar reservas."))
+
+    def _mz_assert_can_enable_booking(self):
+        if not (self._mz_is_manager() or self._mz_is_commercial()):
+            raise AccessError(_("Solo Comercial o Manager puede marcar la orden como reserva."))
+
     mz_is_booking = fields.Boolean(string="Is Manzano Booking", default=False, index=True)
+
+    def write(self, vals):
+        if "mz_is_booking" in vals and vals.get("mz_is_booking"):
+            self._mz_assert_can_enable_booking()
+        return super().write(vals)
     mz_policy_accepted = fields.Boolean(string="Policy Accepted", default=False, copy=False)
     mz_booking_id = fields.Many2one("manzano.booking", string="Booking", copy=False, readonly=True)
     mz_booking_state = fields.Selection(related="mz_booking_id.state", string="Booking State", readonly=True)
@@ -55,8 +81,10 @@ class SaleOrder(models.Model):
     def _mz_confirm_booking_atomic(self):
         booking_orders = self.filtered("mz_is_booking")
 
-        # 1) pre-validations (fail-fast)
-        booking_orders._mz_validate_for_final_confirmation()
+        if booking_orders:
+            booking_orders._mz_assert_can_final_confirm()
+            # 1) pre-validations (fail-fast)
+            booking_orders._mz_validate_for_final_confirmation()
 
         # 2) commercial confirmation (if this fails, Odoo transaction rolls back)
         res = super(SaleOrder, self).action_confirm()
@@ -79,6 +107,7 @@ class SaleOrder(models.Model):
         return res
 
     def action_mz_create_soft_hold(self):
+        self._mz_assert_can_create_hold()
         for order in self:
             if not order.mz_is_booking:
                 raise UserError(_("Order is not marked as Manzano booking."))

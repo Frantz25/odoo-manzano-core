@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_manzano_booking_user,access.manzano.booking.user,model_manzano_booking,base.group_user,1,1,1,0
+access_manzano_booking_manager,access.manzano.booking.manager,model_manzano_booking,manzano_booking.group_manzano_booking_manager,1,1,1,1
+access_manzano_booking_operations,access.manzano.booking.operations,model_manzano_booking,manzano_booking.group_manzano_booking_operations,1,1,1,0
+access_manzano_booking_commercial,access.manzano.booking.commercial,model_manzano_booking,manzano_booking.group_manzano_booking_commercial,1,0,0,0
