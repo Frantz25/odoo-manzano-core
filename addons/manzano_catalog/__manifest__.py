@@ -7,6 +7,9 @@
     "depends": ["base", "mail"],
     "data": [
         "security/ir.model.access.csv",
+        "views/catalog_item_views.xml",
+        "views/catalog_sync_wizard_views.xml",
+        "views/catalog_menus.xml",
     ],
 
     "installable": True,

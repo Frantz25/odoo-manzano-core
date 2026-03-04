@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_manzano_catalog_sync_wizard_form" model="ir.ui.view">
+    <field name="name">manzano.catalog.sync.wizard.form</field>
+    <field name="model">manzano.catalog.sync.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Catalog Sync CSV">
+        <group>
+          <field name="source_name"/>
+          <field name="csv_content" placeholder="external_ref,name,category,unit_type,capacity_units,price_base,currency,active\nROOM_STD,Habitación Estándar,Hospedaje,room,2,45000,CLP,1"/>
+          <field name="result_summary" readonly="1"/>
+        </group>
+        <footer>
+          <button name="action_sync" type="object" string="Run Sync" class="btn-primary"/>
+          <button string="Close" class="btn-secondary" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_manzano_catalog_sync_wizard" model="ir.actions.act_window">
+    <field name="name">Sync Catalog CSV</field>
+    <field name="res_model">manzano.catalog.sync.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>
