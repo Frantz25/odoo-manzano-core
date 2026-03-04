@@ -7,8 +7,8 @@
     "depends": ["base", "mail"],
     "data": [
         "security/ir.model.access.csv",
-        "data/catalog_seed.csv",
     ],
+
     "installable": True,
     "application": False,
 }
