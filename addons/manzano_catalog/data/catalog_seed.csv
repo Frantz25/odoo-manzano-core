@@ -1,0 +1,5 @@
+external_ref,name,category,unit_type,capacity_units,price_base,currency,active
+ROOM_STD,Habitación Estándar,Hospedaje,room,2,45000,CLP,1
+SPACE_SALON,Salón Principal,Eventos,space,350,180000,CLP,1
+POOL_CAMPING,Cupo Camping,Camping,pool,1,8000,CLP,1
+SVC_COFFEE,Coffee Break,Servicios,service,0,5500,CLP,1
