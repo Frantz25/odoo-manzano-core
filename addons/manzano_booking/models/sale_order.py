@@ -10,6 +10,8 @@ class SaleOrder(models.Model):
     mz_booking_id = fields.Many2one("manzano.booking", string="Booking", copy=False, readonly=True)
     mz_booking_state = fields.Selection(related="mz_booking_id.state", string="Booking State", readonly=True)
     mz_hold_expires_at = fields.Datetime(related="mz_booking_id.hold_expires_at", string="Hold Expires", readonly=True)
+    mz_qr_state = fields.Selection(related="mz_booking_id.qr_state", string="QR State", readonly=True)
+    mz_qr_url = fields.Char(related="mz_booking_id.qr_url", string="QR URL", readonly=True)
 
     def _mz_validate_for_final_confirmation(self):
         for order in self.filtered("mz_is_booking"):
@@ -30,6 +32,7 @@ class SaleOrder(models.Model):
         booking = self.env["manzano.booking"].create({
             "sale_order_id": self.id,
             "state": "draft",
+            "qr_state": "none",
         })
         self.mz_booking_id = booking.id
         return booking
@@ -52,6 +55,13 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         return self._mz_confirm_booking_atomic()
+
+    def action_cancel(self):
+        res = super().action_cancel()
+        for order in self.filtered("mz_is_booking"):
+            if order.mz_booking_id:
+                order.mz_booking_id.set_cancelled()
+        return res
 
     def action_mz_create_soft_hold(self):
         for order in self:
