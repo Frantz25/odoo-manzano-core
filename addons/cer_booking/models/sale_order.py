@@ -294,6 +294,13 @@ class SaleOrder(models.Model):
                 order.cer_booking_id.state = target
 
     def action_confirm(self):
+        # Blindaje de flujo: no permitir confirmar si no está marcada como Reserva CER.
+        # Evita saltarse el proceso por botón estándar.
+        non_booking = self.filtered(lambda o: o.state in ("draft", "sent") and not o.cer_is_booking)
+        if non_booking:
+            names = ", ".join(non_booking.mapped("name"))
+            raise UserError(_("Debes marcar la cotización como Reserva CER antes de confirmar: %s") % names)
+
         # Consideramos reserva CER por flag explícita o por huella de reserva previa.
         booking_orders = self.filtered(lambda o: o.cer_is_booking or o.cer_booking_id or o.cer_booking_name)
 
