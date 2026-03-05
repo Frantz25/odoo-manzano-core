@@ -49,3 +49,15 @@ class SaleOrder(models.Model):
         template = self.env.ref("cer_documents.cer_document_template_acta_aceptacion", raise_if_not_found=False)
         updates = {"default_template_id": template.id} if template else {}
         return self._cer_document_wizard_action(updates, _("Crear Acta de Aceptación"))
+
+    def action_open_cer_reservation_confirmation_wizard(self):
+        self.ensure_one()
+        template = self.env.ref("cer_documents.cer_document_template_reserva_checkin", raise_if_not_found=False)
+        updates = {"default_template_id": template.id} if template else {}
+        return self._cer_document_wizard_action(updates, _("Crear Confirmación de Reserva"))
+
+    def action_open_cer_checkin_pass_wizard(self):
+        self.ensure_one()
+        template = self.env.ref("cer_documents.cer_document_template_checkin_pass", raise_if_not_found=False)
+        updates = {"default_template_id": template.id} if template else {}
+        return self._cer_document_wizard_action(updates, _("Crear Check-in Pass"))

@@ -17,6 +17,14 @@
       <field name="note">Plantilla base para confirmación y recepción/check-in.</field>
     </record>
 
+    <record id="cer_document_template_checkin_pass" model="cer.document.template">
+      <field name="active">True</field>
+      <field name="name">Plantilla Check-in Pass CER</field>
+      <field name="model_id" ref="sale.model_sale_order"/>
+      <field name="body_html">Check-in Pass CER - Cliente: {{partner_id.name}} - Reserva: {{cer_booking_name}} - Entrada: {{cer_date_from}} - Salida: {{cer_date_to}} - Participantes: {{cer_participants}} - Código offline: {{cer_booking_offline_code}} - URL QR: {{cer_booking_qr_url}}</field>
+      <field name="note">Pase de ingreso con referencias de check-in.</field>
+    </record>
+
     <record id="cer_document_template_acta_aceptacion" model="cer.document.template">
       <field name="active">True</field>
       <field name="name">Plantilla Acta de Aceptación CER</field>
