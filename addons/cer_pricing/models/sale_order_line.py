@@ -50,7 +50,7 @@ class SaleOrderLine(models.Model):
             if line.cer_charge_mode == "room_person_night":
                 nights = line.order_id.cer_stay_nights or line.cer_nights or 0
                 line.cer_duration_display = str(int(max(1, nights)))
-            elif line.cer_charge_mode == "day":
+            elif line.cer_charge_mode in ("day", "person_day"):
                 days = line.order_id.cer_stay_days or line.cer_days or 0
                 line.cer_duration_display = str(int(max(1, days)))
             else:
@@ -72,6 +72,8 @@ class SaleOrderLine(models.Model):
             # Por defecto, si es fixed, no recalcula qty
             if (line.cer_charge_mode or "fixed") == "fixed":
                 line.cer_auto_qty = False
+            if line.order_id:
+                line.order_id._cer_sync_lines()
 
     @api.onchange("cer_participants", "cer_auto_qty")
     def _onchange_cer_participants_recompute(self):
