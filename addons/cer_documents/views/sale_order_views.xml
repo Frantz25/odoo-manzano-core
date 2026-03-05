@@ -24,17 +24,17 @@
                 type="object"
                 string="Confirmación Reserva"
                 class="btn-secondary"
-                invisible="state not in ('draft','sent')"/>
+                invisible="not cer_is_booking or cer_booking_state not in ('reserved','confirmed')"/>
         <button name="action_open_cer_checkin_pass_wizard"
                 type="object"
                 string="Check-in Pass"
                 class="btn-secondary"
-                invisible="state not in ('draft','sent')"/>
+                invisible="not cer_is_booking or cer_booking_state != 'confirmed'"/>
         <button name="action_open_cer_acta_create_wizard"
                 type="object"
                 string="Crear Acta CER"
                 class="btn-secondary"
-                invisible="state not in ('draft','sent')"/>
+                invisible="not cer_is_booking or cer_booking_state not in ('reserved','confirmed')"/>
       </xpath>
 
     </field>
