@@ -11,26 +11,58 @@
 
     <record id="cer_document_template_reserva_checkin" model="cer.document.template">
       <field name="active">True</field>
-      <field name="name">Plantilla Reserva / Check-in CER</field>
+      <field name="name">Plantilla Confirmación de Reserva CER</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="body_html">Comprobante de Reserva - Cliente: {{partner_id.name}} - Reserva: {{cer_booking_name}} - Entrada: {{cer_date_from}} - Salida: {{cer_date_to}} - Participantes: {{cer_participants}}.</field>
-      <field name="note">Plantilla base para confirmación y recepción/check-in.</field>
+      <field name="body_html"><![CDATA[
+        <h3>Confirmación de Reserva CER</h3>
+        <p>Estimado/a <strong>{{partner_id.name}}</strong>,</p>
+        <p>Confirmamos la recepción de tu reserva con los siguientes datos:</p>
+        <ul>
+          <li><strong>Cotización/Pedido:</strong> {{name}}</li>
+          <li><strong>Código de reserva:</strong> {{cer_booking_name}}</li>
+          <li><strong>Estado de reserva:</strong> {{cer_booking_state}}</li>
+          <li><strong>Entrada:</strong> {{cer_date_from}}</li>
+          <li><strong>Salida:</strong> {{cer_date_to}}</li>
+          <li><strong>Participantes:</strong> {{cer_participants}}</li>
+        </ul>
+        <p>Esta confirmación está sujeta al cumplimiento de políticas y condiciones comerciales vigentes.</p>
+      ]]></field>
+      <field name="note">Plantilla oficial para confirmación de reserva al cliente.</field>
     </record>
 
     <record id="cer_document_template_checkin_pass" model="cer.document.template">
       <field name="active">True</field>
       <field name="name">Plantilla Check-in Pass CER</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="body_html">Check-in Pass CER - Cliente: {{partner_id.name}} - Reserva: {{cer_booking_name}} - Entrada: {{cer_date_from}} - Salida: {{cer_date_to}} - Participantes: {{cer_participants}} - Código offline: {{cer_booking_offline_code}} - URL QR: {{cer_booking_qr_url}}</field>
-      <field name="note">Pase de ingreso con referencias de check-in.</field>
+      <field name="body_html"><![CDATA[
+        <h3>Check-in Pass CER</h3>
+        <p><strong>Cliente:</strong> {{partner_id.name}}</p>
+        <p><strong>Reserva:</strong> {{cer_booking_name}} &nbsp;|&nbsp; <strong>Pedido:</strong> {{name}}</p>
+        <p><strong>Fechas:</strong> {{cer_date_from}} → {{cer_date_to}} &nbsp;|&nbsp; <strong>Participantes:</strong> {{cer_participants}}</p>
+        <p><strong>Código de acceso offline:</strong> {{cer_booking_offline_code}}</p>
+        <p><strong>URL QR de check-in:</strong> {{cer_booking_qr_url}}</p>
+        <p>Presenta este pase al llegar al recinto para validar tu ingreso.</p>
+      ]]></field>
+      <field name="note">Pase operativo de ingreso/check-in con códigos de validación.</field>
     </record>
 
     <record id="cer_document_template_acta_aceptacion" model="cer.document.template">
       <field name="active">True</field>
       <field name="name">Plantilla Acta de Aceptación CER</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="body_html">Acta de Aceptación - Yo, {{partner_id.name}}, declaro aceptar las condiciones de la reserva. Documento: {{name}} - Fecha: {{date_order}} - Firma: ____________________</field>
-      <field name="note">Base legal inicial; la firma PNG se incorpora en iteración de portal/acta.</field>
+      <field name="body_html"><![CDATA[
+        <h3>Acta de Aceptación de Servicio CER</h3>
+        <p>Yo, <strong>{{partner_id.name}}</strong>, declaro haber revisado y aceptado las condiciones del servicio asociado a la reserva <strong>{{cer_booking_name}}</strong>.</p>
+        <ul>
+          <li><strong>Documento comercial:</strong> {{name}}</li>
+          <li><strong>Entrada:</strong> {{cer_date_from}}</li>
+          <li><strong>Salida:</strong> {{cer_date_to}}</li>
+          <li><strong>Participantes:</strong> {{cer_participants}}</li>
+        </ul>
+        <p><strong>Fecha:</strong> {{date_order}}</p>
+        <p><strong>Firma:</strong> ________________________________</p>
+      ]]></field>
+      <field name="note">Plantilla legal para aceptación y firma de servicio.</field>
     </record>
   </data>
 </odoo>
