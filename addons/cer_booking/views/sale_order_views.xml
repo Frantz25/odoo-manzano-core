@@ -8,6 +8,11 @@
     <field name="arch" type="xml">
 
       <!-- Header buttons -->
+      <!-- En reservas CER, ocultamos confirmar estándar para forzar flujo CER -->
+      <xpath expr="//header//button[@name='action_confirm']" position="attributes">
+        <attribute name="invisible">cer_is_booking or state not in ['draft','sent']</attribute>
+      </xpath>
+
       <xpath expr="//header" position="inside">
         <button name="action_cer_mark_as_booking"
                 type="object"
