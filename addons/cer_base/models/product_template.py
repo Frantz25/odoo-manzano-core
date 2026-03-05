@@ -15,6 +15,7 @@ class ProductTemplate(models.Model):
         selection=[
             ("room_person_night", "Habitación: persona x noche"),
             ("day", "Salón/Capilla: por día (grupo)"),
+            ("person_day", "Camping: persona x día"),
             ("person", "Actividad/Servicio: por persona"),
             ("fixed", "Fijo"),
         ],

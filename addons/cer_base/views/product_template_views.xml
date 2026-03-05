@@ -12,7 +12,7 @@
             <field name="cer_sku"/>
             <field name="cer_charge_mode"/>
             <field name="cer_activity_kind" invisible="cer_charge_mode != 'person'"/>
-            <field name="cer_min_people" invisible="cer_charge_mode != 'person'"/>
+            <field name="cer_min_people" invisible="cer_charge_mode not in ('person','person_day')"/>
           </group>
         </page>
       </xpath>
