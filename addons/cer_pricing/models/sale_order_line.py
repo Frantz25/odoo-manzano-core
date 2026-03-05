@@ -57,11 +57,10 @@ class SaleOrderLine(models.Model):
                 line.cer_duration_display = ""
 
 
-    @api.depends("price_subtotal", "product_uom_qty", "currency_id")
+    @api.depends("price_unit", "currency_id")
     def _compute_cer_price_unit_excl_tax(self):
         for line in self:
-            qty = float(line.product_uom_qty or 0.0)
-            unit = (line.price_subtotal / qty) if qty else 0.0
+            unit = float(line.price_unit or 0.0)
             line.cer_price_unit_excl_tax = line.currency_id.round(unit) if line.currency_id else unit
 
     @api.onchange("product_id")

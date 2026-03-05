@@ -110,8 +110,11 @@ class SaleOrder(models.Model):
                         line.price_unit = rp
                     line.cer_season_id = season.id
 
-                # Aplica descuento fijo a la línea (porcentaje)
-                if line.cer_apply_discount:
+                # Aplica descuento fijo a la línea (porcentaje).
+                # Si no hay descuento CER en cabecera, forzamos 0 para evitar arrastres.
+                if not order.cer_discount_id:
+                    line.discount = 0.0
+                elif line.cer_apply_discount:
                     line.discount = discount_pct
 
                 # Recalcula cantidad interna según modo (sin necesidad de wizard)
@@ -144,6 +147,9 @@ class SaleOrder(models.Model):
                         line.product_uom_qty = computed_qty
                     elif line.cer_auto_qty:
                         line.product_uom_qty = computed_qty
+
+                    # Recalcular importes para evitar subtotales desfasados en UI/PDF.
+                    line._compute_amount()
                 else:
                     # Sin fechas: limpiar informativos para evitar datos antiguos
                     line.cer_qty_computed = 0.0
