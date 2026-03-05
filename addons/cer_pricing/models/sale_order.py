@@ -138,8 +138,11 @@ class SaleOrder(models.Model):
                     line.cer_days = payload.get("days", 0)
                     line.cer_participants = payload.get("participants", participants)
 
-                    # Solo forzar Cantidad si está activada la qty automática
-                    if line.cer_auto_qty:
+                    # En person_day/day forzamos cantidad calculada para mantener coherencia comercial.
+                    # En otros modos, respetamos el flag de qty automática.
+                    if effective_charge_mode in ("person_day", "day"):
+                        line.product_uom_qty = computed_qty
+                    elif line.cer_auto_qty:
                         line.product_uom_qty = computed_qty
                 else:
                     # Sin fechas: limpiar informativos para evitar datos antiguos
