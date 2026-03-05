@@ -56,6 +56,7 @@ class CerBooking(models.Model):
     state = fields.Selection(
         [
             ("draft", "Borrador"),
+            ("reserved", "Reservada"),
             ("confirmed", "Confirmada"),
             ("cancelled", "Cancelada"),
         ],
@@ -87,7 +88,7 @@ class CerBooking(models.Model):
                 "sale_order_id": order.id,
                 "booking_code": self.env["ir.sequence"].next_by_code("cer.booking") or _("RESERVA"),
                 "offline_access_code": self._generate_offline_access_code(),
-                "state": "confirmed",
+                "state": "draft",
             }
         )
 
@@ -147,10 +148,11 @@ class CerBooking(models.Model):
                 continue
 
             used_unit_ids = self._get_overlapping_used_unit_ids(booking)
+            used_pool_qty = self._get_overlapping_used_pool_qty(booking)
             messages = []
 
             for req in booking.request_line_ids:
-                # Pool (camping): asignación por cantidad, sin unit_id
+                # Pool (camping): asignación por cantidad, sin unit_id, respetando pool_qty
                 pool = Unit.search(
                     [
                         ("company_id", "=", booking.company_id.id),
@@ -161,14 +163,28 @@ class CerBooking(models.Model):
                     limit=1,
                 )
                 if pool:
-                    UnitLine.create(
-                        {
-                            "booking_id": booking.id,
-                            "unit_type": req.unit_type,
-                            "qty_assigned": int(req.qty_requested or 0),
-                        }
-                    )
-                    messages.append(_("Pool %(type)s asignado: %(qty)s") % {"type": req.unit_type, "qty": req.qty_requested})
+                    requested = int(req.qty_requested or 0)
+                    used = int(used_pool_qty.get(req.unit_type, 0))
+                    capacity = int(pool.pool_qty or 0)
+                    assignable = max(min(requested, max(capacity - used, 0)), 0)
+
+                    if assignable > 0:
+                        UnitLine.create(
+                            {
+                                "booking_id": booking.id,
+                                "unit_type": req.unit_type,
+                                "qty_assigned": assignable,
+                            }
+                        )
+                    used_pool_qty[req.unit_type] = used + assignable
+
+                    if assignable < requested:
+                        messages.append(
+                            _("Pool %(type)s parcial: solicitado %(req)s, asignado %(ok)s, disponible %(avail)s")
+                            % {"type": req.unit_type, "req": requested, "ok": assignable, "avail": max(capacity - used, 0)}
+                        )
+                    else:
+                        messages.append(_("Pool %(type)s asignado: %(qty)s") % {"type": req.unit_type, "qty": assignable})
                     continue
 
                 # Unidades reales (habitaciones / espacios)
@@ -212,9 +228,27 @@ class CerBooking(models.Model):
             [
                 ("booking_id", "!=", booking.id),
                 ("unit_id", "!=", False),
-                ("state", "=", "confirmed"),
+                ("state", "in", ["reserved", "confirmed"]),
                 ("check_in", "<", booking.check_out),
                 ("check_out", ">", booking.check_in),
             ]
         )
         return set(lines.mapped("unit_id").ids)
+
+    def _get_overlapping_used_pool_qty(self, booking):
+        if not booking.check_in or not booking.check_out:
+            return {}
+
+        lines = self.env["cer.booking.unit.line"].search(
+            [
+                ("booking_id", "!=", booking.id),
+                ("unit_id", "=", False),
+                ("state", "in", ["reserved", "confirmed"]),
+                ("check_in", "<", booking.check_out),
+                ("check_out", ">", booking.check_in),
+            ]
+        )
+        out = {}
+        for line in lines:
+            out[line.unit_type] = int(out.get(line.unit_type, 0)) + int(line.qty_assigned or 0)
+        return out

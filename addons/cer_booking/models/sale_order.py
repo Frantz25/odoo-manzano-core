@@ -132,25 +132,31 @@ class SaleOrder(models.Model):
             date_to = order.cer_date_to
 
             wanted_by_tmpl = defaultdict(int)
+            wanted_pool_by_type = defaultdict(int)
             for line in order.order_line.filtered(lambda l: not l.display_type and l.product_id and l.cer_units_qty):
                 tmpl = line.product_id.product_tmpl_id
                 if not tmpl.cer_reservable:
                     continue
+                qty = int(line.cer_units_qty or 0)
                 if tmpl.cer_capacity_units and tmpl.cer_capacity_units > 0:
-                    wanted_by_tmpl[tmpl.id] += int(line.cer_units_qty or 0)
+                    wanted_by_tmpl[tmpl.id] += qty
+                if getattr(tmpl, "cer_unit_type", False) == "camp_slot":
+                    wanted_pool_by_type[tmpl.cer_unit_type] += qty
 
-            if not wanted_by_tmpl:
+            if not wanted_by_tmpl and not wanted_pool_by_type:
                 continue
 
             tmpl_ids = list(wanted_by_tmpl.keys())
 
-            other_lines = Sol.search([
-                ("order_id", "!=", order.id),
-                ("product_id.product_tmpl_id", "in", tmpl_ids),
-                ("cer_units_qty", ">", 0),
-                ("order_id.company_id", "=", order.company_id.id),
-                *order._cer_booking_overlap_domain(date_from, date_to),
-            ])
+            other_lines = Sol.browse()
+            if tmpl_ids:
+                other_lines |= Sol.search([
+                    ("order_id", "!=", order.id),
+                    ("product_id.product_tmpl_id", "in", tmpl_ids),
+                    ("cer_units_qty", ">", 0),
+                    ("order_id.company_id", "=", order.company_id.id),
+                    *order._cer_booking_overlap_domain(date_from, date_to),
+                ])
 
             used_by_tmpl = defaultdict(int)
             for l in other_lines:
@@ -174,6 +180,41 @@ class SaleOrder(models.Model):
                             "over": (used + wanted - cap),
                         }
                     )
+
+            if wanted_pool_by_type:
+                Unit = self.env["cer.unit"]
+                for unit_type, wanted in wanted_pool_by_type.items():
+                    pool = Unit.search([
+                        ("company_id", "=", order.company_id.id),
+                        ("unit_type", "=", unit_type),
+                        ("is_pool", "=", True),
+                        ("active", "=", True),
+                    ], limit=1)
+                    if not pool:
+                        continue
+
+                    used_pool_qty = 0
+                    overlapping_pool_lines = Sol.search([
+                        ("order_id", "!=", order.id),
+                        ("product_id.product_tmpl_id.cer_unit_type", "=", unit_type),
+                        ("cer_units_qty", ">", 0),
+                        ("order_id.company_id", "=", order.company_id.id),
+                        *order._cer_booking_overlap_domain(date_from, date_to),
+                    ])
+                    for pl in overlapping_pool_lines:
+                        used_pool_qty += int(pl.cer_units_qty or 0)
+
+                    cap = int(pool.pool_qty or 0)
+                    if used_pool_qty + int(wanted) > cap:
+                        problems.append(
+                            _("Pool %(type)s: cupo %(cap)s, ya reservado %(used)s, intentas %(wanted)s (exceso %(over)s).") % {
+                                "type": unit_type,
+                                "cap": cap,
+                                "used": used_pool_qty,
+                                "wanted": wanted,
+                                "over": (used_pool_qty + int(wanted) - cap),
+                            }
+                        )
 
             if problems:
                 raise UserError(_("No hay disponibilidad para esas fechas:\n- %s") % "\n- ".join(problems))
@@ -234,6 +275,23 @@ class SaleOrder(models.Model):
             order.cer_booking_id = booking.id
             if not order.cer_booking_name:
                 order.cer_booking_name = booking.booking_code
+            order._cer_sync_booking_state_from_order()
+
+    def _cer_sync_booking_state_from_order(self):
+        for order in self:
+            if not order.cer_booking_id:
+                continue
+            if order.cer_booking_state == "confirmed":
+                target = "confirmed"
+            elif order.cer_booking_state == "cancelled":
+                target = "cancelled"
+            elif order.cer_booking_state == "reserved":
+                target = "reserved"
+            else:
+                target = "draft"
+
+            if order.cer_booking_id.state != target:
+                order.cer_booking_id.state = target
 
     def action_confirm(self):
         # Consideramos reserva CER por flag explícita o por huella de reserva previa.
@@ -253,14 +311,21 @@ class SaleOrder(models.Model):
             order._cer_ensure_booking_created()
             if order.cer_booking_state != "cancelled":
                 order.cer_booking_state = "confirmed"
+            order._cer_sync_booking_state_from_order()
 
         return res
 
     def action_quotation_accept(self):
-        res = super().action_quotation_accept()
         booking_orders = self.filtered("cer_is_booking")
+        for order in booking_orders:
+            if not order.cer_booking_overbooking:
+                order._cer_check_availability()
+
+        res = super().action_quotation_accept()
+
         if booking_orders and "cer.communication.service" in self.env:
             self.env["cer.communication.service"].trigger("sale_portal_accepted", booking_orders)
+
         for order in booking_orders:
             partner = self.env.user.partner_id if self.env.user else False
             order.write({
@@ -268,14 +333,11 @@ class SaleOrder(models.Model):
                 "cer_policy_accepted_at": fields.Datetime.now(),
                 "cer_policy_accepted_by_partner_id": partner.id if partner else False,
             })
-            try:
-                order._cer_assert_policy_accepted()
-                order._cer_assert_minimum_deposit_for_reservation()
-                order._cer_ensure_booking_created()
-                if order.cer_booking_state != "cancelled":
-                    order.cer_booking_state = "confirmed"
-            except UserError as e:
-                order.message_post(body=_("Cotización aceptada, pero reserva CER pendiente: %s") % e.args[0])
+            order._cer_assert_policy_accepted()
+            order._cer_ensure_booking_created()
+            if order.cer_booking_state not in ("cancelled", "confirmed"):
+                order.cer_booking_state = "reserved"
+            order._cer_sync_booking_state_from_order()
         return res
 
     def _cer_booking_assign_number(self):
@@ -312,6 +374,8 @@ class SaleOrder(models.Model):
             order._cer_check_availability()
 
             order.cer_booking_state = "reserved"
+            order._cer_ensure_booking_created()
+            order._cer_sync_booking_state_from_order()
             order.message_post(body=_("Reserva **reservada** para %(from)s → %(to)s.") % {
                 "from": order.cer_date_from,
                 "to": order.cer_date_to,
