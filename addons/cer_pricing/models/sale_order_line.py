@@ -51,8 +51,8 @@ class SaleOrderLine(models.Model):
                 nights = line.order_id.cer_stay_nights or line.cer_nights or 0
                 line.cer_duration_display = str(int(max(1, nights)))
             elif line.cer_charge_mode in ("day", "person_day"):
-                nights = line.order_id.cer_stay_nights or line.cer_nights or 0
-                line.cer_duration_display = str(int(max(1, nights)))
+                days = line.order_id.cer_stay_days or line.cer_days or 0
+                line.cer_duration_display = str(int(max(1, days)))
             else:
                 line.cer_duration_display = ""
 
