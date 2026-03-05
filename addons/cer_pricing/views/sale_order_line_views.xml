@@ -9,6 +9,7 @@
       <!-- 1) DESCRIPCIÓN -->
       <xpath expr="//field[@name='order_line']//*[self::list]//field[@name='product_id']" position="attributes">
         <attribute name="string">DESCRIPCIÓN</attribute>
+        <attribute name="context">{'display_default_code': False}</attribute>
       </xpath>
 
       <!-- 2) Ocultar la cantidad (qty): en CER se trabaja con personas + duración -->
