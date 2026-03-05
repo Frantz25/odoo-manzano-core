@@ -32,8 +32,9 @@ class CERPricingEngine(models.AbstractModel):
             raise UserError(_("Participantes no puede ser negativo."))
 
         nights_raw = self.compute_nights(date_from, date_to)
-        # Para salones/capilla se cobra por día (inclusivo)
-        days = self.compute_days(date_from, date_to, inclusive=False)
+        # Para cobro por día usamos conteo inclusivo:
+        # ej: 10->12 => 3 días, 2 noches.
+        days = self.compute_days(date_from, date_to, inclusive=True)
 
         if charge_mode == "room_person_night":
             # Si entrada == salida, cobrar 1 noche (UX)
