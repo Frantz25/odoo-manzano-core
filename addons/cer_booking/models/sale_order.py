@@ -6,7 +6,7 @@ from collections import defaultdict
 from urllib.parse import quote
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 ICP_DEPOSIT_PERCENT_KEY = "cer_base.default_deposit_percent"
 ICP_POLICY_MANDATORY_KEY = "cer_base.policy_mandatory"
@@ -404,6 +404,30 @@ class SaleOrder(models.Model):
                 raise UserError(_("Para cancelar una reserva confirmada, primero cancela el pedido de venta."))
             order.cer_booking_state = "cancelled"
             order.message_post(body=_("Reserva **cancelada**."))
+
+    def action_cer_manager_force_state(self):
+        """Override manual controlado para QA (solo CER / Manager)."""
+        if not self.env.user.has_group("cer_base.group_cer_admin"):
+            raise AccessError(_("Solo CER / Manager puede usar override manual de estado."))
+
+        target = self.env.context.get("cer_force_state")
+        allowed = {"draft", "reserved", "confirmed", "cancelled"}
+        if target not in allowed:
+            raise UserError(_("Estado objetivo inválido para override QA."))
+
+        for order in self:
+            if not order.cer_is_booking:
+                raise UserError(_("La orden debe estar marcada como Reserva CER para usar override QA."))
+
+            prev = order.cer_booking_state
+            order.cer_booking_state = target
+            order._cer_ensure_booking_created()
+            order._cer_sync_booking_state_from_order()
+            order.message_post(body=_("[QA Override] Estado cambiado manualmente: %(prev)s → %(new)s") % {
+                "prev": prev,
+                "new": target,
+            })
+        return True
 
     def action_cancel(self):
         res = super().action_cancel()
