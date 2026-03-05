@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
+
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+
+ICP_VALIDITY_DAYS_KEY = "cer_base.quote_validity_days"
 
 
 class SaleOrder(models.Model):
@@ -15,6 +19,31 @@ class SaleOrder(models.Model):
     cer_stay_nights = fields.Integer(string="Noches", compute="_compute_cer_stay", store=True, readonly=True)
     cer_stay_days = fields.Integer(string="Días", compute="_compute_cer_stay", store=True, readonly=True)
     cer_stay_display = fields.Char(string="Estadía", compute="_compute_cer_stay_display", store=True, readonly=True)
+
+    def _cer_get_quote_validity_days(self):
+        self.ensure_one()
+        icp = self.env["ir.config_parameter"].sudo()
+        scoped = icp.get_param(f"{ICP_VALIDITY_DAYS_KEY}__company_{self.company_id.id}", default=None)
+        if scoped not in (None, ""):
+            return int(scoped or 0)
+        return int(icp.get_param(ICP_VALIDITY_DAYS_KEY, 7) or 7)
+
+    @api.model
+    def _cer_add_business_days(self, start_date, business_days):
+        """Suma días hábiles (lun-vie), excluyendo sábados y domingos."""
+        current = start_date
+        remaining = int(max(0, business_days or 0))
+        while remaining > 0:
+            current += timedelta(days=1)
+            if current.weekday() < 5:
+                remaining -= 1
+        return current
+
+    def _cer_compute_validity_business_date(self):
+        self.ensure_one()
+        base_date = fields.Date.context_today(self)
+        days = self._cer_get_quote_validity_days()
+        return self._cer_add_business_days(base_date, days)
 
     @api.depends("cer_date_from", "cer_date_to")
     def _compute_cer_stay(self):
@@ -53,6 +82,8 @@ class SaleOrder(models.Model):
             if order.partner_id and not order.cer_discount_id:
                 # Proponer descuento por defecto del cliente
                 order.cer_discount_id = order.partner_id.cer_discount_id
+            if not order.validity_date:
+                order.validity_date = order._cer_compute_validity_business_date()
 
     @api.onchange("cer_date_from", "cer_date_to", "cer_participants", "cer_discount_id")
     def _onchange_cer_header_recompute(self):
@@ -151,6 +182,17 @@ class SaleOrder(models.Model):
                     line.cer_qty_computed = 0.0
                     line.cer_nights = 0
                     line.cer_days = 0
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        normalized = []
+        for vals in vals_list:
+            data = dict(vals)
+            if not data.get("validity_date"):
+                pseudo = self.new(data)
+                data["validity_date"] = pseudo._cer_compute_validity_business_date()
+            normalized.append(data)
+        return super().create(normalized)
 
     def write(self, vals):
         res = super().write(vals)
