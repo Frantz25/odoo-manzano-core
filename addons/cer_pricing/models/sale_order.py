@@ -122,10 +122,6 @@ class SaleOrder(models.Model):
                     participants = int(line.cer_participants or order.cer_participants or 0)
                     effective_charge_mode = line.cer_charge_mode or "fixed"
 
-                    # Camping por día (persona x día)
-                    if line.product_id.default_code == "CAMP_DAY":
-                        effective_charge_mode = "person_day"
-
                     payload = Engine.compute_line_payload(
                         charge_mode=effective_charge_mode,
                         participants=participants,

@@ -41,12 +41,6 @@ class SaleOrderLine(models.Model):
                 line.cer_duration_display = ""
                 continue
 
-            # Camping por día: mostrar días
-            if line.product_id and line.product_id.default_code == "CAMP_DAY":
-                days = line.order_id.cer_stay_days or line.cer_days or 0
-                line.cer_duration_display = str(int(max(1, days)))
-                continue
-
             if line.cer_charge_mode == "room_person_night":
                 nights = line.order_id.cer_stay_nights or line.cer_nights or 0
                 line.cer_duration_display = str(int(max(1, nights)))
