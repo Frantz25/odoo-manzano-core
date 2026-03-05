@@ -112,11 +112,12 @@ class SaleOrder(models.Model):
 
     def _cer_booking_overlap_domain(self, date_from, date_to):
         # Overlap: other_from < date_to AND other_to > date_from
+        # OJO: este dominio se usa sobre sale.order.line, por eso debe prefijar order_id.
         return [
-            ("cer_is_booking", "=", True),
-            ("cer_booking_state", "in", ["reserved", "confirmed"]),
-            ("cer_date_from", "<", date_to),
-            ("cer_date_to", ">", date_from),
+            ("order_id.cer_is_booking", "=", True),
+            ("order_id.cer_booking_state", "in", ["reserved", "confirmed"]),
+            ("order_id.cer_date_from", "<", date_to),
+            ("order_id.cer_date_to", ">", date_from),
         ]
 
     def _cer_check_availability(self):
