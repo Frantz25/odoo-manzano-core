@@ -32,9 +32,9 @@ class CERPricingEngine(models.AbstractModel):
             raise UserError(_("Participantes no puede ser negativo."))
 
         nights_raw = self.compute_nights(date_from, date_to)
-        # Para cobro por día usamos conteo inclusivo:
-        # ej: 10->12 => 3 días, 2 noches.
-        days = self.compute_days(date_from, date_to, inclusive=True)
+        # Regla operativa Manzano/CER: cobro por día se alinea a noches.
+        # ej: 10->12 => 2 noches (se usa 2 para day/person_day).
+        days = self.compute_days(date_from, date_to, inclusive=False)
 
         if charge_mode == "room_person_night":
             # Si entrada == salida, cobrar 1 noche (UX)
