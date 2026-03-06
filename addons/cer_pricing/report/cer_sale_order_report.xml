@@ -37,7 +37,7 @@
         <tr class="border-top">
             <td class="text-end">
                 <t t-if="tax_percent_str">
-                    <span t-esc="'IVA %s%% en' % tax_percent_str"/>
+                    <span t-esc="'IVA %s%%' % tax_percent_str"/>
                 </t>
                 <t t-else="">
                     <span>Impuestos</span>
