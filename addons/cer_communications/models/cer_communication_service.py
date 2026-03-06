@@ -112,11 +112,22 @@ class CERCommunicationService(models.AbstractModel):
 
         partner_ids, email_to = self._resolve_recipients(rule, record)
 
-        # Render robusto de plantilla (subject/body) compatible con sintaxis de mail.template.
-        # Evita placeholders crudos en Odoo 19 según motor de render actual.
-        rendered = template.generate_email(record.id)
-        subject = rendered.get("subject") or template.subject or ""
-        body_html = rendered.get("body_html") or template.body_html or ""
+        # Render robusto y compatible entre variantes de API de mail.template.
+        # 1) _render_field (API moderna)
+        # 2) generate_email (si existe)
+        # 3) fallback al contenido estático
+        subject = template.subject or ""
+        body_html = template.body_html or ""
+
+        if hasattr(template, "_render_field"):
+            subject_map = template._render_field("subject", [record.id], compute_lang=True)
+            body_map = template._render_field("body_html", [record.id], compute_lang=True)
+            subject = subject_map.get(record.id) or subject
+            body_html = body_map.get(record.id) or body_html
+        elif hasattr(template, "generate_email"):
+            rendered = template.generate_email(record.id)
+            subject = rendered.get("subject") or subject
+            body_html = rendered.get("body_html") or body_html
 
         if rule.channel_chatter and hasattr(record, "message_post"):
             record.message_post(
