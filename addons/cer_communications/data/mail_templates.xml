@@ -24,16 +24,16 @@
     <record id="mail_template_cer_booking_confirmed" model="mail.template">
       <field name="name">CER - Reserva confirmada (cliente)</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="subject">Reserva confirmada: ${object.name}</field>
+      <field name="subject">Reserva confirmada: {{ object.name }}</field>
       <field name="body_html"><![CDATA[
-        <div>
-          <p>Hola,</p>
+        <div style="font-family:Arial,Helvetica,sans-serif;">
+          <p>Hola {{ object.partner_id.name or '' }},</p>
           <p>Tu reserva ha sido <strong>confirmada</strong>.</p>
           <ul>
-            <li><strong>Referencia</strong>: ${object.cer_booking_name or object.name}</li>
-            <li><strong>Entrada</strong>: ${object.cer_date_from or ''}</li>
-            <li><strong>Salida</strong>: ${object.cer_date_to or ''}</li>
-            <li><strong>Código de acceso</strong>: ${object.cer_booking_offline_code or ''}</li>
+            <li><strong>Referencia</strong>: {{ object.cer_booking_name or object.name }}</li>
+            <li><strong>Entrada</strong>: {{ object.cer_date_from or '' }}</li>
+            <li><strong>Salida</strong>: {{ object.cer_date_to or '' }}</li>
+            <li><strong>Código de acceso</strong>: {{ object.cer_booking_offline_code or '' }}</li>
           </ul>
         </div>
       ]]></field>
@@ -62,23 +62,23 @@
     <record id="mail_template_cer_booking_checkin_pass" model="mail.template">
       <field name="name">CER - Pase individual check-in</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="subject">Tu pase de check-in CER: ${object.name}</field>
+      <field name="subject">Tu pase de check-in CER: {{ object.name }}</field>
       <field name="body_html"><![CDATA[
-        <div>
-          <p>Hola ${object.partner_id.name or ''},</p>
+        <div style="font-family:Arial,Helvetica,sans-serif;">
+          <p>Hola {{ object.partner_id.name or '' }},</p>
           <p>Te compartimos tu pase de check-in.</p>
           <ul>
-            <li><strong>Reserva</strong>: ${object.cer_booking_name or object.name}</li>
-            <li><strong>Entrada</strong>: ${object.cer_date_from or ''}</li>
-            <li><strong>Salida</strong>: ${object.cer_date_to or ''}</li>
-            <li><strong>Código de acceso</strong>: ${object.cer_booking_offline_code or ''}</li>
+            <li><strong>Reserva</strong>: {{ object.cer_booking_name or object.name }}</li>
+            <li><strong>Entrada</strong>: {{ object.cer_date_from or '' }}</li>
+            <li><strong>Salida</strong>: {{ object.cer_date_to or '' }}</li>
+            <li><strong>Código de acceso</strong>: {{ object.cer_booking_offline_code or '' }}</li>
           </ul>
           <p>
-            <img src="${object.cer_checkin_qr_img_url or ''}" alt="QR Check-in" style="max-width:220px;max-height:220px;"/>
+            <img src="{{ object.cer_checkin_qr_img_url or '' }}" alt="QR Check-in" style="max-width:220px;max-height:220px;"/>
           </p>
           <p>
             Enlace directo check-in:<br/>
-            <a href="${object.cer_booking_qr_url or '#'}">${object.cer_booking_qr_url or ''}</a>
+            <a href="{{ object.cer_booking_qr_url or '#' }}">{{ object.cer_booking_qr_url or '' }}</a>
           </p>
           <p>Presenta este código QR en recepción.</p>
         </div>
@@ -196,23 +196,23 @@
     <record id="mail_template_cer_precheckin_reminder" model="mail.template">
       <field name="name">CER - Recordatorio pre check-in</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="subject">Recordatorio de llegada: ${object.cer_booking_name or object.name}</field>
+      <field name="subject">Recordatorio de llegada: {{ object.cer_booking_name or object.name }}</field>
       <field name="body_html"><![CDATA[
-        <div>
-          <p>Hola ${object.partner_id.name or ''},</p>
+        <div style="font-family:Arial,Helvetica,sans-serif;">
+          <p>Hola {{ object.partner_id.name or '' }},</p>
           <p>Te recordamos tu check-in próximo.</p>
           <ul>
-            <li><strong>Reserva</strong>: ${object.cer_booking_name or object.name}</li>
-            <li><strong>Entrada</strong>: ${object.cer_date_from or ''}</li>
-            <li><strong>Salida</strong>: ${object.cer_date_to or ''}</li>
-            <li><strong>Código de acceso</strong>: ${object.cer_booking_offline_code or ''}</li>
+            <li><strong>Reserva</strong>: {{ object.cer_booking_name or object.name }}</li>
+            <li><strong>Entrada</strong>: {{ object.cer_date_from or '' }}</li>
+            <li><strong>Salida</strong>: {{ object.cer_date_to or '' }}</li>
+            <li><strong>Código de acceso</strong>: {{ object.cer_booking_offline_code or '' }}</li>
           </ul>
           <p>
-            <img src="${object.cer_checkin_qr_img_url or ''}" alt="QR Check-in" style="max-width:220px;max-height:220px;"/>
+            <img src="{{ object.cer_checkin_qr_img_url or '' }}" alt="QR Check-in" style="max-width:220px;max-height:220px;"/>
           </p>
           <p>
             Enlace directo check-in:<br/>
-            <a href="${object.cer_booking_qr_url or '#'}">${object.cer_booking_qr_url or ''}</a>
+            <a href="{{ object.cer_booking_qr_url or '#' }}">{{ object.cer_booking_qr_url or '' }}</a>
           </p>
         </div>
       ]]></field>
