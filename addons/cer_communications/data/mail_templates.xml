@@ -141,12 +141,54 @@
     <record id="mail_template_cer_sale_validity_reminder" model="mail.template">
       <field name="name">CER - Recordatorio vigencia cotización</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="subject">Recordatorio: vigencia de tu cotización {{ object.name }}</field>
+      <field name="subject">Recordatorio: tu cotización {{ object.name }} vence pronto</field>
       <field name="body_html"><![CDATA[
-        <div>
-          <p>Hola,</p>
-          <p>Te recordamos que la cotización <strong>{{ object.name }}</strong> vence el <strong>{{ object.validity_date or '' }}</strong>.</p>
-          <p>Total: <strong>{{ object.amount_total }}</strong></p>
+        <div style="background:#f5f6f8;padding:24px 0;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            <tr>
+              <td style="padding:20px 24px;border-bottom:1px solid #e5e7eb;">
+                <div style="font-size:14px;color:#6b7280;">Centro de Entrenamiento y Recreación El Manzano</div>
+                <div style="font-size:28px;font-weight:700;margin-top:6px;">Recordatorio de vigencia</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px;">
+                <p style="margin:0 0 16px 0;font-size:16px;">Hola <strong>{{ object.partner_id.name or '' }}</strong>,</p>
+                <p style="margin:0 0 16px 0;font-size:15px;line-height:1.5;">
+                  Te recordamos que tu cotización <strong>{{ object.name }}</strong> vence el
+                  <strong>{{ object.validity_date or '' }}</strong>.
+                </p>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="border-collapse:collapse;margin:12px 0 20px 0;background:#f9fafb;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="font-weight:600;width:40%;">Referencia</td>
+                    <td>{{ object.name }}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:600;">Vencimiento</td>
+                    <td>{{ object.validity_date or '' }}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:600;">Total cotización</td>
+                    <td>{{ object.amount_total }}</td>
+                  </tr>
+                </table>
+
+                <p style="margin:0 0 18px 0;font-size:14px;line-height:1.5;">
+                  Si deseas continuar con la reserva, responde este correo o contacta a nuestro equipo comercial.
+                </p>
+
+                <a href="#" style="display:inline-block;background:#7c3aed;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:6px;font-weight:600;">
+                  Contactar al equipo
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 24px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px;text-align:center;">
+                My Company · Centro de Entrenamiento y Recreación El Manzano
+              </td>
+            </tr>
+          </table>
         </div>
       ]]></field>
     </record>
