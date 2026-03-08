@@ -88,15 +88,15 @@
     <record id="mail_template_cer_booking_cancelled" model="mail.template">
       <field name="name">CER - Reserva cancelada</field>
       <field name="model_id" ref="sale.model_sale_order"/>
-      <field name="subject">Reserva cancelada: {{ object.name }}</field>
+      <field name="subject">Reserva cancelada: ${object.name}</field>
       <field name="body_html"><![CDATA[
         <div>
           <p>Hola,</p>
           <p>Tu reserva ha sido <strong>cancelada</strong>.</p>
           <ul>
-            <li><strong>Referencia</strong>: {{ object.name }}</li>
-            <li><strong>Entrada</strong>: {{ object.cer_date_from or '' }}</li>
-            <li><strong>Salida</strong>: {{ object.cer_date_to or '' }}</li>
+            <li><strong>Referencia</strong>: ${object.name}</li>
+            <li><strong>Entrada</strong>: ${object.cer_date_from or ''}</li>
+            <li><strong>Salida</strong>: ${object.cer_date_to or ''}</li>
           </ul>
         </div>
       ]]></field>
