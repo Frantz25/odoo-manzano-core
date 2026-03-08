@@ -439,7 +439,14 @@ class SaleOrder(models.Model):
 
     def action_cancel(self):
         res = super().action_cancel()
-        for order in self.filtered("cer_is_booking"):
+        booking_orders = self.filtered("cer_is_booking")
+        for order in booking_orders:
             # Si cancelan el sale.order, marcamos booking cancelado
             order.cer_booking_state = "cancelled"
+            order._cer_sync_booking_state_from_order()
+
+        # Dispara comunicación de cancelación también en la ruta de cancelación estándar
+        if booking_orders and "cer.communication.service" in self.env:
+            self.env["cer.communication.service"].trigger("booking_cancelled", booking_orders)
+
         return res
