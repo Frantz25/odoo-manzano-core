@@ -113,17 +113,28 @@ class CERCommunicationService(models.AbstractModel):
         partner_ids, email_to = self._resolve_recipients(rule, record)
 
         # Render robusto y compatible entre variantes de API de mail.template.
-        # 1) _render_field (API moderna)
-        # 2) generate_email (si existe)
-        # 3) fallback al contenido estático
+        # Priorizamos _render_template para body_html (evita placeholders crudos en chatter).
         subject = template.subject or ""
         body_html = template.body_html or ""
 
+        if hasattr(template, "_render_template"):
+            try:
+                subj_map = template._render_template(template.subject or "", record._name, [record.id])
+                body_map = template._render_template(template.body_html or "", record._name, [record.id])
+                subject = subj_map.get(record.id) or subject
+                body_html = body_map.get(record.id) or body_html
+            except Exception:
+                # Fallback a _render_field / generate_email más abajo
+                pass
+
         if hasattr(template, "_render_field"):
-            subject_map = template._render_field("subject", [record.id], compute_lang=True)
-            body_map = template._render_field("body_html", [record.id], compute_lang=True)
-            subject = subject_map.get(record.id) or subject
-            body_html = body_map.get(record.id) or body_html
+            try:
+                subject_map = template._render_field("subject", [record.id], compute_lang=True)
+                body_map = template._render_field("body_html", [record.id], compute_lang=True)
+                subject = subject_map.get(record.id) or subject
+                body_html = body_map.get(record.id) or body_html
+            except Exception:
+                pass
         elif hasattr(template, "generate_email"):
             rendered = template.generate_email(record.id)
             subject = rendered.get("subject") or subject
